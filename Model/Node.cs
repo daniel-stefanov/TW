@@ -1,22 +1,45 @@
 ﻿namespace TW.Model
 {
-    //Vertex
-    public class Node : NetworkElement
+    public class Node
     {
-        public List<Link> Links { get; set; } = new List<Link>();
+        public string Id { get; init; }
+        public virtual double MaxCapacity { get; set; } = 0;
 
-        public override double RawDemand
+        public virtual double Demand
         {
             get
             {
-                double result = Links.Where(x => x.NodeIn == this).Sum(x => x.Demand);
+                double result = GetLoss(this) + RawDemand;
                 return result;
             }
-            set { }
         }
 
-        public Node(string id) : base(id)
+        public virtual double FactualLoss
         {
+            get
+            {
+                double result = Demand - RawDemand;
+                return result;
+            }
+        }
+
+        public virtual double RawDemand { get; set; } = 0;
+
+        public virtual double LoadRatio
+        {
+            get
+            {
+                double result = RawDemand / MaxCapacity;
+                return result;
+            }
+        }
+
+        public Func<Node, double> GetLoss { get; set; } = (Node element) => 1;
+        public Func<Node, double> CalculateCost { get; set; } = (Node element) => 1;
+
+        public Node(string id)
+        {
+            Id = id;
         }
     }
 }

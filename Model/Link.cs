@@ -1,10 +1,10 @@
 ﻿namespace TW.Model
 {
     //Edge
-    public class Link : NetworkElement
+    public class Link : Node
     {
-        public Node NodeIn { get; set; }
-        public Node NodeOut { get; set; }
+        public Intermediary NodeIn { get; set; }
+        public Intermediary NodeOut { get; set; }
 
         public override double RawDemand { get => NodeOut.Demand; set { } }
 

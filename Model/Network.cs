@@ -2,12 +2,12 @@
 {
     public class Network
     {
-        const bool throwOnFailedConnection = true;
-        const double defaultLinkCapacity = 30;
+        Random r = new Random();
+        const bool throwOnFailedConnection = false;
 
-        public List<NetworkElement> Elements { get; set; } = new List<NetworkElement>();
+        public List<Node> Elements { get; set; } = new List<Node>();
 
-        double PowerLossF(NetworkElement net)
+        double PowerLossF(Node net)
         {
             double ratio = Math.Pow(net.LoadRatio, 2);
             double fixedLoss = net.MaxCapacity / 100;
@@ -15,7 +15,22 @@
             return fixedLoss + variableLoss;
         }
 
-        public void Initialize()
+        public void InitializeRandom()
+        {
+            int numberOfGenerators = r.Next(2, 10);
+            int numberOfIntermediaries = r.Next(10, 100);
+            int numberOfConsumers = r.Next(numberOfGenerators, numberOfGenerators * 2);
+
+            int i;
+            i = 0;
+            while (i < numberOfGenerators)
+            {
+
+                i++;
+            }
+        }
+
+        public void InitializeDemo()
         {
             Generator g1 = new Generator("g1");
             g1.Production = 12;
@@ -27,13 +42,13 @@
             g2.MaxCapacity = 20;
             AddElement(g2);
 
-            Node i1 = new Node("i1");
-            i1.MaxCapacity = 30;
+            Intermediary i1 = new Intermediary("i1");
+            i1.MaxCapacity = r.Next(25, 100);
             i1.GetLoss = PowerLossF;
             AddElement(i1);
 
-            Node i2 = new Node("i2");
-            i2.MaxCapacity = 30;
+            Intermediary i2 = new Intermediary("i2");
+            i2.MaxCapacity = r.Next(25, 100);
             i2.GetLoss = PowerLossF;
             AddElement(i2);
 
@@ -44,11 +59,11 @@
             c2.RawDemand = 11;
             AddElement(c2);
 
-            ConnectElement(i1, new Node[] { g1, g2 }, new Node[] { i2 });
-            ConnectElement(i2, Enumerable.Empty<Node>(), new Node[] { c1, c2 });
+            ConnectElement(i1, new Intermediary[] { g1, g2 }, new Intermediary[] { i2 });
+            ConnectElement(i2, Enumerable.Empty<Intermediary>(), new Intermediary[] { c1, c2 });
         }
 
-        public void AddElement(NetworkElement node)
+        public void AddElement(Node node)
         {
             if (Elements.Contains(node))
             {
@@ -57,11 +72,11 @@
             Elements.Add(node);
         }
 
-        public (IEnumerable<Link> successfulLinks, IEnumerable<(Link, string)> failedLinks) ConnectElement(string nodeId, IEnumerable<string> inputIds, IEnumerable<Node> outputIds)
+        public (IEnumerable<Link> successfulLinks, IEnumerable<(Link, string)> failedLinks) ConnectElement(string nodeId, IEnumerable<string> inputIds, IEnumerable<Intermediary> outputIds)
         {
-            Node? node = (Node?)Elements.Find(x => x is Node && x.Id == nodeId);
-            IEnumerable<Node?> inputs = inputIds.Select(x => (Node?)Elements.Find(x => x is Node && x.Id == nodeId));
-            IEnumerable<Node?> outputs = inputIds.Select(x => (Node?)Elements.Find(x => x is Node && x.Id == nodeId));
+            Intermediary? node = (Intermediary?)Elements.Find(x => x is Intermediary && x.Id == nodeId);
+            IEnumerable<Intermediary?> inputs = inputIds.Select(x => (Intermediary?)Elements.Find(x => x is Intermediary && x.Id == nodeId));
+            IEnumerable<Intermediary?> outputs = inputIds.Select(x => (Intermediary?)Elements.Find(x => x is Intermediary && x.Id == nodeId));
             if (node == null || inputs.Any(x => x == null) || outputs.Any(x => x == null))
             {
                 throw new ArgumentException("Unknown node.");
@@ -69,7 +84,7 @@
             return ConnectElement(node, inputs, outputs);
         }
 
-        public (IEnumerable<Link> successfulLinks, IEnumerable<(Link, string)> failedLinks) ConnectElement(Node node, IEnumerable<Node?> inputs, IEnumerable<Node?> outputs)
+        public (IEnumerable<Link> successfulLinks, IEnumerable<(Link, string)> failedLinks) ConnectElement(Intermediary node, IEnumerable<Intermediary?> inputs, IEnumerable<Intermediary?> outputs)
         {
             if (!Elements.Contains(node))
             {
@@ -77,7 +92,7 @@
             }
             List<Link> successfulLinks = new List<Link>();
             List<(Link, string)> failedLinks = new List<(Link, string)>();
-            foreach (Node input in inputs)
+            foreach (Intermediary input in inputs)
             {
                 if (input == null)
                 {
@@ -105,7 +120,7 @@
                     continue;
                 }
 
-                link.MaxCapacity = defaultLinkCapacity;
+                link.MaxCapacity = r.Next(25, 100);
                 link.GetLoss = PowerLossF;
 
                 input.Links.Add(link);
@@ -113,7 +128,7 @@
 
                 successfulLinks.Add(link);
             }
-            foreach (Node output in outputs)
+            foreach (Intermediary output in outputs)
             {
                 if (output == null)
                 {
@@ -155,7 +170,7 @@
                     continue;
                 }
 
-                link.MaxCapacity = defaultLinkCapacity;
+                link.MaxCapacity = r.Next(25, 100);
                 link.GetLoss = PowerLossF;
 
                 node.Links.Add(link);
@@ -166,7 +181,7 @@
             return (successfulLinks, failedLinks);
         }
 
-        public bool CircularDependencyOk(Node source, Node target)
+        public bool CircularDependencyOk(Intermediary source, Intermediary target)
         {
             foreach (Link link in target.Links.Where(x => x.NodeIn == target))
             {
