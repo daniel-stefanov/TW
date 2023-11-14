@@ -28,10 +28,10 @@ namespace TW
         static void ProcessInput()
         {
             Console.WriteLine();
-            Console.Write('>');
             bool valid = true;
             do
             {
+                Console.Write('>');
                 string? input = Console.ReadLine().Trim().ToLower();
                 switch (input)
                 {
@@ -108,6 +108,10 @@ namespace TW
                             exit = true;
                             break;
                         }
+                    case "":
+                        {
+                            break;
+                        }
                     default:
                         {
                             Console.WriteLine("Invalid input.");
@@ -132,11 +136,11 @@ namespace TW
                     Console.Write($"[{node.Id}] ");
                 }
                 Console.WriteLine();
-                Console.WriteLine($"Average load: {path.Sum(x => x.LoadRatio) / path.Count}");
-                Console.WriteLine($"Peak load: {path.MaxBy(x => x.LoadRatio).ToString(new Func<NetworkElement, string>[] { x => x.Id, x => x.LoadRatio.ToString() }, ", ")}");
-                Console.WriteLine($"Average loss: {path.Sum(x => x.CalculateLoss(x)) / path.Count}");
-                Console.WriteLine($"Total loss: {path.Sum(x => x.CalculateLoss(x))}");
-                Console.WriteLine($"Peak loss: {path.MaxBy(x => x.CalculateLoss(x)).ToString(new Func<NetworkElement, string>[] { x => x.Id, x => x.CalculateLoss(x).ToString() }, ", ")}");
+                Console.WriteLine($"Average load: {(path.Sum(x => x.LoadRatio) / path.Count) * 100}%");
+                Console.WriteLine($"Peak load: {path.MaxBy(x => x.LoadRatio).ToString(new Func<NetworkElement, string>[] { x => x.Id, x => (x.LoadRatio * 100).ToString() }, ", ")}%");
+                Console.WriteLine($"Average loss: {path.Sum(x => x.FactualLoss) / path.Count} MW");
+                Console.WriteLine($"Total loss: {path.Sum(x => x.FactualLoss)} MW");
+                Console.WriteLine($"Peak loss: {path.MaxBy(x => x.FactualLoss).ToString(new Func<NetworkElement, string>[] { x => x.Id, x => x.FactualLoss.ToString() }, ", ")} MW");
 
                 Console.WriteLine();
             }

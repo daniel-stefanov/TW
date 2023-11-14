@@ -2,6 +2,8 @@
 {
     public class Network
     {
+        const bool ThrowOnFailedConnection = true;
+
         public List<NetworkElement> Elements { get; set; } = new List<NetworkElement>();
 
         double PowerLossF(NetworkElement net)
@@ -13,26 +15,30 @@
         {
             Generator g1 = new Generator("g1");
             g1.Production = 12;
+            g1.MaxCapacity = 15;
             AddElement(g1);
 
             Generator g2 = new Generator("g2");
             g2.Production = 20;
+            g2.MaxCapacity = 20;
             AddElement(g2);
 
             Node i1 = new Node("i1");
             i1.MaxCapacity = 10;
-            i1.CalculateLoss = PowerLossF;
+            i1.GetLossRatio = PowerLossF;
             AddElement(i1);
 
             Node i2 = new Node("i2");
             i2.MaxCapacity = 9;
-            i2.CalculateLoss = PowerLossF;
+            i2.GetLossRatio = PowerLossF;
             AddElement(i2);
 
             Consumer c1 = new Consumer("c1");
             c1.RawDemand = 8;
+            AddElement(c1);
             Consumer c2 = new Consumer("c2");
             c2.RawDemand = 11;
+            AddElement(c2);
 
             ConnectElement(i1, new Node[] { g1, g2 }, new Node[] { i2 });
             ConnectElement(i2, Enumerable.Empty<Node>(), new Node[] { c1, c2 });
@@ -96,10 +102,12 @@
                 }
 
                 link.MaxCapacity = 10;
-                link.CalculateLoss = PowerLossF;
+                link.GetLossRatio = PowerLossF;
 
                 input.Links.Add(link);
                 node.Links.Add(link);
+
+                successfulLinks.Add(link);
             }
             foreach (Node output in outputs)
             {
@@ -114,25 +122,42 @@
 
                 if (node.Links.Any(x => x.NodeOut.Id == output.Id))
                 {
-                    failedLinks.Add((link, "Already connected."));
+                    string msg = "Already connected.";
+                    failedLinks.Add((link, msg));
+                    if (ThrowOnFailedConnection)
+                    {
+                        throw new Exception(msg);
+                    }
                     continue;
                 }
                 if (!CircularDependencyOk(node, output))
                 {
-                    failedLinks.Add((link, "Circular dependency check failed."));
+                    string msg = "Circular dependency check failed.";
+                    failedLinks.Add((link, msg));
+                    if (ThrowOnFailedConnection)
+                    {
+                        throw new Exception(msg);
+                    }
                     continue;
                 }
                 if (!Elements.Contains(output))
                 {
-                    failedLinks.Add((link, "Unknown node."));
+                    string msg = "Unknown node.";
+                    failedLinks.Add((link, msg));
+                    if (ThrowOnFailedConnection)
+                    {
+                        throw new Exception(msg);
+                    }
                     continue;
                 }
 
                 link.MaxCapacity = 10;
-                link.CalculateLoss = PowerLossF;
+                link.GetLossRatio = PowerLossF;
 
                 node.Links.Add(link);
                 output.Links.Add(link);
+
+                successfulLinks.Add(link);
             }
             return (successfulLinks, failedLinks);
         }

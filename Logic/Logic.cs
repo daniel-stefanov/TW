@@ -9,7 +9,8 @@ namespace TW.Logic
         {
             IEnumerable<NetworkElement> startNodes = net.Elements.Where(x => x is Node node && !node.Links.Any(y => y.NodeOut == x));
             List<List<NetworkElement>> paths = new List<List<NetworkElement>>();
-            foreach (NetworkElement node in startNodes) {
+            foreach (NetworkElement node in startNodes)
+            {
                 paths = GetPaths(paths, new List<NetworkElement> { node }, node);
             }
             return paths;
@@ -18,9 +19,9 @@ namespace TW.Logic
         private static List<List<NetworkElement>> GetPaths(List<List<NetworkElement>> paths, List<NetworkElement> currentPath, NetworkElement currentElement)
         {
             List<List<NetworkElement>> overlappingPaths = paths.Where(x => x.Contains(currentElement)).ToList();
-            if(overlappingPaths.Any())
+            if (overlappingPaths.Any())
             {
-                foreach(List<NetworkElement> overlappingPath in overlappingPaths)
+                foreach (List<NetworkElement> overlappingPath in overlappingPaths)
                 {
                     List<NetworkElement> tmp = new List<NetworkElement>(currentPath);
                     int i = overlappingPath.IndexOf(currentElement) + 1;
@@ -37,15 +38,15 @@ namespace TW.Logic
                 }
                 else if (currentElement is Node node)
                 {
-                    children.AddRange(node.Links.Where(x=>x.NodeIn == node));
+                    children.AddRange(node.Links.Where(x => x.NodeIn == node));
                 }
-                if(children.Count == 0)
+                if (children.Count == 0)
                 {
                     paths.Add(currentPath);
                 }
                 else
                 {
-                    foreach(NetworkElement child in children)
+                    foreach (NetworkElement child in children)
                     {
                         currentPath.Add(child);
                         paths = GetPaths(paths, currentPath, child);
@@ -73,6 +74,7 @@ namespace TW.Logic
                 sb.Append(selector(element));
                 sb.Append(separator);
             }
+            sb.Length -= separator.Length;
             return sb.ToString();
         }
     }

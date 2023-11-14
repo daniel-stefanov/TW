@@ -9,7 +9,16 @@
         {
             get
             {
-                double result = (1 / CalculateLoss(this)) * RawDemand;
+                double result = (1 / GetLossRatio(this)) * RawDemand;
+                return result;
+            }
+        }
+
+        public virtual double FactualLoss
+        {
+            get
+            {
+                double result = Demand - RawDemand;
                 return result;
             }
         }
@@ -19,7 +28,7 @@
             get;
         }
 
-        public double LoadRatio
+        public virtual double LoadRatio
         {
             get
             {
@@ -28,7 +37,7 @@
             }
         }
 
-        public Func<NetworkElement, double> CalculateLoss { get; set; } = (NetworkElement element) => 1;
+        public Func<NetworkElement, double> GetLossRatio { get; set; } = (NetworkElement element) => 1;
         public Func<NetworkElement, double> CalculateCost { get; set; } = (NetworkElement element) => 1;
 
         public NetworkElement(string id)
