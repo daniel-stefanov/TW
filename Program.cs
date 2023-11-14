@@ -154,7 +154,7 @@ namespace TW
                 Console.WriteLine($"  Loss: {node.LossFn(node).ToString("0.00")} MW");
             }
 
-            List<NetworkElement> intermediaries = path.Where(x => x is Intermediary).ToList();
+            List<NetworkElement> intermediaries = path.Where(x => x is Intermediary || x is Link).ToList();
             Console.WriteLine();
             Console.WriteLine($" Average load: {(intermediaries.Average(x => x.LoadRatio) * 100).ToString("0.00")}%");
             Console.WriteLine($" Peak load: {intermediaries.MaxBy(x => x.LoadRatio).ToString(new Func<NetworkElement, string>[] { x => x.Id, x => (x.LoadRatio * 100).ToString("0.00") }, ", ")}%");
