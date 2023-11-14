@@ -1,6 +1,6 @@
 ﻿using TW.Model;
 
-namespace TW.Logic
+namespace TW.Control
 {
     public class NodeAnalysis
     {

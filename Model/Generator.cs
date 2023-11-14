@@ -1,7 +1,7 @@
 ﻿namespace TW.Model
 {
     //Source
-    public class Generator : Intermediary
+    public class Generator : Node
     {
         public double Production { get; set; } = 0;
         public override double Demand

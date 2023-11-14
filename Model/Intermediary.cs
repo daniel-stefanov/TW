@@ -1,10 +1,7 @@
 ﻿namespace TW.Model
 {
-    //Vertex
     public class Intermediary : Node
     {
-        public List<Link> Links { get; set; } = new List<Link>();
-
         public override double RawDemand
         {
             get

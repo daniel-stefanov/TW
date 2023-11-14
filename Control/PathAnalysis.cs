@@ -1,4 +1,4 @@
-﻿namespace TW.Logic
+﻿namespace TW.Control
 {
     public class PathAnalysis
     {
