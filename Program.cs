@@ -130,20 +130,40 @@ namespace TW
             List<List<NetworkElement>> paths = Logic.Logic.FindAllPaths(DemoNetwork);
             foreach (List<NetworkElement> path in paths)
             {
-                Console.Write("Path: ");
-                foreach (NetworkElement node in path)
-                {
-                    Console.Write($"[{node.Id}] ");
-                }
-                Console.WriteLine();
-                Console.WriteLine($"Average load: {(path.Sum(x => x.LoadRatio) / path.Count) * 100}%");
-                Console.WriteLine($"Peak load: {path.MaxBy(x => x.LoadRatio).ToString(new Func<NetworkElement, string>[] { x => x.Id, x => (x.LoadRatio * 100).ToString() }, ", ")}%");
-                Console.WriteLine($"Average loss: {path.Sum(x => x.FactualLoss) / path.Count} MW");
-                Console.WriteLine($"Total loss: {path.Sum(x => x.FactualLoss)} MW");
-                Console.WriteLine($"Peak loss: {path.MaxBy(x => x.FactualLoss).ToString(new Func<NetworkElement, string>[] { x => x.Id, x => x.FactualLoss.ToString() }, ", ")} MW");
-
-                Console.WriteLine();
+                PrintPath(path);
             }
+        }
+
+        static void PrintPath(List<NetworkElement> path)
+        {
+             Console.Write("Path: ");
+             foreach (NetworkElement node in path)
+             {
+               Console.Write($"[{node.Id}] ");
+             }
+
+             Console.WriteLine();
+             
+             foreach (NetworkElement node in path)
+             {
+                Console.WriteLine($" {node.Id} - {node.GetType().Name}");
+                Console.WriteLine($"  Max Capacity: {(node.MaxCapacity).ToString("0.00")} MW");
+                Console.WriteLine($"  Demand: {(node.Demand).ToString("0.00")} MW");
+                Console.WriteLine($"  Load: {(node.LoadRatio * 100).ToString("0.00")}%");
+                Console.WriteLine($"  Loss: {(node.FactualLoss).ToString("0.00")} MW");
+               
+             }
+
+             List<NetworkElement> intermediaries = path.Where(x => x is not Generator && x is not Consumer).ToList();
+             Console.WriteLine();
+             Console.WriteLine($" Average load: {((intermediaries.Sum(x => x.LoadRatio) / intermediaries.Count) * 100).ToString("0.00")}%");
+             Console.WriteLine($" Peak load: {intermediaries.MaxBy(x => x.LoadRatio).ToString(new Func<NetworkElement, string>[] { x => x.Id, x => (x.LoadRatio * 100).ToString("0.00") }, ", ")}%");
+             Console.WriteLine($" Average loss: {(intermediaries.Sum(x => x.FactualLoss) / intermediaries.Count).ToString("0.00")} MW");
+             Console.WriteLine($" Total loss: {(intermediaries.Sum(x => x.FactualLoss)).ToString("0.00")} MW");
+             Console.WriteLine($" Peak loss: {intermediaries.MaxBy(x => x.FactualLoss).ToString(new Func<NetworkElement, string>[] { x => x.Id, x => x.FactualLoss.ToString("0.00") }, ", ")} MW");
+
+             Console.WriteLine();
+             Console.WriteLine();
         }
 
         static void OptimizeNetwork()

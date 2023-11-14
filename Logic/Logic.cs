@@ -48,8 +48,9 @@ namespace TW.Logic
                 {
                     foreach (NetworkElement child in children)
                     {
-                        currentPath.Add(child);
-                        paths = GetPaths(paths, currentPath, child);
+                        List<NetworkElement> branch = new List<NetworkElement>(currentPath);
+                        branch.Add(child);
+                        paths = GetPaths(paths, branch, child);
                     }
                 }
             }

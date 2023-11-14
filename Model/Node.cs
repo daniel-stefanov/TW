@@ -5,13 +5,14 @@
     {
         public List<Link> Links { get; set; } = new List<Link>();
 
-        protected override double RawDemand
+        public override double RawDemand
         {
             get
             {
                 double result = Links.Where(x => x.NodeIn == this).Sum(x => x.Demand);
                 return result;
             }
+            set { }
         }
 
         public Node(string id) : base(id)

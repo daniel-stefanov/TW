@@ -5,7 +5,11 @@
     {
         public override double Demand => RawDemand;
 
-        public new double RawDemand { get; set; } = 0;
+        public override double MaxCapacity => RawDemand;
+
+        public override double RawDemand { get;set; }
+
+        public override double FactualLoss { get => RawDemand; }
 
         public Consumer(string id) : base(id)
         {

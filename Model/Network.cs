@@ -2,13 +2,17 @@
 {
     public class Network
     {
-        const bool ThrowOnFailedConnection = true;
+        const bool throwOnFailedConnection = true;
+        const double defaultLinkCapacity = 30;
 
         public List<NetworkElement> Elements { get; set; } = new List<NetworkElement>();
 
         double PowerLossF(NetworkElement net)
         {
-            return (net.MaxCapacity / 3) + ((net.MaxCapacity / 3) * 2 * net.LoadRatio);
+            double ratio = Math.Pow(net.LoadRatio, 2);
+            double fixedLoss = net.MaxCapacity / 100;
+            double variableLoss = (net.MaxCapacity / 10) * ratio;
+            return fixedLoss + variableLoss;
         }
 
         public void Initialize()
@@ -24,13 +28,13 @@
             AddElement(g2);
 
             Node i1 = new Node("i1");
-            i1.MaxCapacity = 10;
-            i1.GetLossRatio = PowerLossF;
+            i1.MaxCapacity = 30;
+            i1.GetLoss = PowerLossF;
             AddElement(i1);
 
             Node i2 = new Node("i2");
-            i2.MaxCapacity = 9;
-            i2.GetLossRatio = PowerLossF;
+            i2.MaxCapacity = 30;
+            i2.GetLoss = PowerLossF;
             AddElement(i2);
 
             Consumer c1 = new Consumer("c1");
@@ -101,8 +105,8 @@
                     continue;
                 }
 
-                link.MaxCapacity = 10;
-                link.GetLossRatio = PowerLossF;
+                link.MaxCapacity = defaultLinkCapacity;
+                link.GetLoss = PowerLossF;
 
                 input.Links.Add(link);
                 node.Links.Add(link);
@@ -124,7 +128,7 @@
                 {
                     string msg = "Already connected.";
                     failedLinks.Add((link, msg));
-                    if (ThrowOnFailedConnection)
+                    if (throwOnFailedConnection)
                     {
                         throw new Exception(msg);
                     }
@@ -134,7 +138,7 @@
                 {
                     string msg = "Circular dependency check failed.";
                     failedLinks.Add((link, msg));
-                    if (ThrowOnFailedConnection)
+                    if (throwOnFailedConnection)
                     {
                         throw new Exception(msg);
                     }
@@ -144,15 +148,15 @@
                 {
                     string msg = "Unknown node.";
                     failedLinks.Add((link, msg));
-                    if (ThrowOnFailedConnection)
+                    if (throwOnFailedConnection)
                     {
                         throw new Exception(msg);
                     }
                     continue;
                 }
 
-                link.MaxCapacity = 10;
-                link.GetLossRatio = PowerLossF;
+                link.MaxCapacity = defaultLinkCapacity;
+                link.GetLoss = PowerLossF;
 
                 node.Links.Add(link);
                 output.Links.Add(link);

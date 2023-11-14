@@ -3,13 +3,13 @@
     public abstract class NetworkElement
     {
         public string Id { get; init; }
-        public double MaxCapacity { get; set; } = 0;
+        public virtual double MaxCapacity { get; set; } = 0;
 
         public virtual double Demand
         {
             get
             {
-                double result = (1 / GetLossRatio(this)) * RawDemand;
+                double result = GetLoss(this) + RawDemand;
                 return result;
             }
         }
@@ -23,10 +23,7 @@
             }
         }
 
-        protected abstract double RawDemand
-        {
-            get;
-        }
+        public virtual double RawDemand { get; set; } = 0;
 
         public virtual double LoadRatio
         {
@@ -37,7 +34,7 @@
             }
         }
 
-        public Func<NetworkElement, double> GetLossRatio { get; set; } = (NetworkElement element) => 1;
+        public Func<NetworkElement, double> GetLoss { get; set; } = (NetworkElement element) => 1;
         public Func<NetworkElement, double> CalculateCost { get; set; } = (NetworkElement element) => 1;
 
         public NetworkElement(string id)

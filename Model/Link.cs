@@ -6,7 +6,7 @@
         public Node NodeIn { get; set; }
         public Node NodeOut { get; set; }
 
-        protected override double RawDemand => NodeOut.Demand;
+        public override double RawDemand { get => NodeOut.Demand; set { } }
 
         public Link(string id) : base(id)
         {

@@ -8,10 +8,17 @@
         {
             get
             {
-                return 0;
-                //double result = Links.Where(x => x.NodeIn == this).Sum(x => x.Demand) + (Production * -1);
-                //return result;
+                return RawDemand;
             }
+        }
+
+        public override double RawDemand
+        {
+            get
+            {
+                return Production * -1;
+            }
+            set { }
         }
 
         public override double LoadRatio
