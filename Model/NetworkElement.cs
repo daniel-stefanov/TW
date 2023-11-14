@@ -1,37 +1,35 @@
 ﻿namespace TW.Model
 {
-    public class NetworkElement
+    public abstract class NetworkElement
     {
         public string Id { get; init; }
-        public List<Link> Links { get; set; } = new List<Link>();
         public double MaxCapacity { get; set; } = 0;
 
         public virtual double Demand
         {
             get
             {
-                return (1 / CalculateLoss(this)) * RawDemand;
+                double result = (1 / CalculateLoss(this)) * RawDemand;
+                return result;
             }
         }
 
-        protected virtual double RawDemand
+        protected abstract double RawDemand
         {
-            get
-            {
-                return Links.Where(x => x.NodeIn == this).Sum(x => x.Demand);
-            }
+            get;
         }
 
         public double LoadRatio
         {
             get
             {
-                return RawDemand / MaxCapacity;
+                double result = RawDemand / MaxCapacity;
+                return result;
             }
         }
 
-        public Func<NetworkElement, double> CalculateLoss { get; set; } = (NetworkElement element) => 0;
-        public Func<NetworkElement, double> CalculateCost { get; set; } = (NetworkElement element) => 0;
+        public Func<NetworkElement, double> CalculateLoss { get; set; } = (NetworkElement element) => 1;
+        public Func<NetworkElement, double> CalculateCost { get; set; } = (NetworkElement element) => 1;
 
         public NetworkElement(string id)
         {

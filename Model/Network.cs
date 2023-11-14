@@ -20,9 +20,13 @@
             AddElement(g2);
 
             Node i1 = new Node("i1");
+            i1.MaxCapacity = 10;
+            i1.CalculateLoss = PowerLossF;
             AddElement(i1);
 
             Node i2 = new Node("i2");
+            i2.MaxCapacity = 9;
+            i2.CalculateLoss = PowerLossF;
             AddElement(i2);
 
             Consumer c1 = new Consumer("c1");

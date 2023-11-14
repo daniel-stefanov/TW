@@ -123,17 +123,18 @@ namespace TW
             Console.WriteLine("Analyzing network...");
             Console.WriteLine("Finding paths...");
             Console.WriteLine();
-            NetworkElement[][] paths = Logic.Logic.FindAllPaths(DemoNetwork);
-            foreach (NetworkElement[] path in paths)
+            List<List<NetworkElement>> paths = Logic.Logic.FindAllPaths(DemoNetwork);
+            foreach (List<NetworkElement> path in paths)
             {
                 Console.Write("Path: ");
                 foreach (NetworkElement node in path)
                 {
                     Console.Write($"[{node.Id}] ");
                 }
-                Console.WriteLine($"Average load: {path.Sum(x => x.LoadRatio) / path.Length}");
+                Console.WriteLine();
+                Console.WriteLine($"Average load: {path.Sum(x => x.LoadRatio) / path.Count}");
                 Console.WriteLine($"Peak load: {path.MaxBy(x => x.LoadRatio).ToString(new Func<NetworkElement, string>[] { x => x.Id, x => x.LoadRatio.ToString() }, ", ")}");
-                Console.WriteLine($"Average loss: {path.Sum(x => x.CalculateLoss(x)) / path.Length}");
+                Console.WriteLine($"Average loss: {path.Sum(x => x.CalculateLoss(x)) / path.Count}");
                 Console.WriteLine($"Total loss: {path.Sum(x => x.CalculateLoss(x))}");
                 Console.WriteLine($"Peak loss: {path.MaxBy(x => x.CalculateLoss(x)).ToString(new Func<NetworkElement, string>[] { x => x.Id, x => x.CalculateLoss(x).ToString() }, ", ")}");
 
