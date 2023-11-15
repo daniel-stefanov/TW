@@ -3,7 +3,7 @@
     public class Report
     {
         public DateTime Timestamp { get; init; }
-        public List<PathAnalysis> Paths { get; set; }
+        public List<PathAnalysis> Paths { get; set; } = new List<PathAnalysis>();
         public double SupplyDemandRatio { get; set; }
         public double TotalLossess { get; set; }
         public double AverageOptimalityDelta { get; set; }

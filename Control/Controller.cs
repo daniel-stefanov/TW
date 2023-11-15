@@ -6,6 +6,8 @@ namespace TW.Control
 {
     public static class Controller
     {
+        static IRecommendationModule recommendationModule = new RecommendationModule();
+
         public async static Task<List<List<NetworkElement>>> FindAllPaths(Network net, ProgressChangedEventHandler? statusHandler)
         {
             statusHandler?.Invoke(net, new ProgressChangedEventArgs(0, "Finding root nodes..."));
@@ -130,9 +132,16 @@ namespace TW.Control
                     NetworkElement element = path[q];
                     ElementAnalysis analyzedElement = new ElementAnalysis();
                     analyzedElement.Element = element;
-                    analyzedElement.Load = element.LoadRatio * 100;
+                    analyzedElement.LoadPercent = element.LoadRatio * 100;
                     analyzedElement.Loss = element.LossFn(element);
-                    analyzedElement.OptimalLoad = (FindOptimalFlow(element, 0.01) / element.MaxCapacity) * 100;
+                    if (element is Generator || element is Consumer)
+                    {
+                        analyzedElement.OptimalLoadPercent = 100;
+                    }
+                    else
+                    {
+                        analyzedElement.OptimalLoadPercent = (FindOptimalFlow(element, 0.01) / element.MaxCapacity) * 100;
+                    }
 
                     analyzedPath.Path.Add(analyzedElement);
 
@@ -140,11 +149,14 @@ namespace TW.Control
                     elementCounter++;
                 }
 
-                analyzedPath.AverageLoad = analyzedPath.Path.Average(x => x.Load);
-                analyzedPath.PeakLoad = analyzedPath.Path.MaxBy(x => x.Load);
-                analyzedPath.AverageLoss = analyzedPath.Path.Average(x => x.Loss);
-                analyzedPath.PeakLoss = analyzedPath.Path.MaxBy(x => x.Loss);
-                analyzedPath.AverageOptimalityDelta = analyzedPath.Path.Average(x => Math.Abs(x.Load - x.OptimalLoad));
+                List<ElementAnalysis> pathIntermediaries = analyzedPath.PassiveElements.ToList();
+
+                analyzedPath.AverageLoadPercent = pathIntermediaries.Average(x => x.LoadPercent);
+                analyzedPath.PeakLoadPercent = pathIntermediaries.MaxBy(x => x.LoadPercent);
+                analyzedPath.AverageLoss = pathIntermediaries.Average(x => x.Loss);
+                analyzedPath.PeakLoss = pathIntermediaries.MaxBy(x => x.Loss);
+                analyzedPath.TotalLoss = pathIntermediaries.Sum(x => x.Loss);
+                analyzedPath.AverageOptimalityPercentDelta = pathIntermediaries.Average(x => x.OptimalityPercentDelta);
 
                 report.Paths.Add(analyzedPath);
 
@@ -155,12 +167,14 @@ namespace TW.Control
 
             List<List<NetworkElement>> normalPaths = paths.Where(x => x.First() is Generator && x.Last() is Consumer).ToList();
             report.SupplyDemandRatio = normalPaths.Sum(x => (x.First() as Generator).Production) / normalPaths.Sum(x => (x.Last() as Consumer).Demand);
-            report.TotalLossess = report.Paths.SelectMany(x => x.Path).DistinctBy(x => x.Element.Id).Sum(x => x.Loss);
-            report.AverageOptimalityDelta = report.Paths.Average(x => x.AverageOptimalityDelta);
+            report.TotalLossess = report.Paths.SelectMany(x => x.Path).Where(x => x.Element is not Generator && x.Element is not Consumer).DistinctBy(x => x.Element.Id).Sum(x => x.Loss);
+            report.AverageOptimalityDelta = report.Paths.Average(x => x.AverageOptimalityPercentDelta);
 
             statusHandler?.Invoke(net, new ProgressChangedEventArgs(100, $"Generating recommendations..."));
 
+            recommendationModule.ApplyRecommendations(report);
 
+            statusHandler?.Invoke(net, new ProgressChangedEventArgs(100, $"Done."));
 
             return report;
         }
@@ -190,6 +204,11 @@ namespace TW.Control
             }
             sb.Length -= separator.Length;
             return sb.ToString();
+        }
+
+        public static string Articulate(this List<ElementAnalysis> path)
+        {
+            return string.Join(' ', path.Select(x => $"[{x.Element.Id}]").ToArray());
         }
     }
 }

@@ -1,13 +1,17 @@
-﻿namespace TW.Control
+﻿using TW.Model;
+
+namespace TW.Control
 {
     public class PathAnalysis
     {
         public List<ElementAnalysis> Path { get; set; } = new List<ElementAnalysis>();
-        public double AverageLoad { get; set; }
-        public ElementAnalysis PeakLoad { get; set; }
+        public List<ElementAnalysis> PassiveElements { get => Path.Where(x => x.Element is not Generator && x.Element is not Consumer).ToList(); }
+        public double AverageLoadPercent { get; set; }
+        public ElementAnalysis PeakLoadPercent { get; set; }
         public double AverageLoss { get; set; }
         public ElementAnalysis PeakLoss { get; set; }
-        public double AverageOptimalityDelta { get; set; }
-        public ElementAnalysis PeakOptimalityDelta { get; set; }
+        public double TotalLoss { get; set; }
+        public double AverageOptimalityPercentDelta { get; set; }
+        public ElementAnalysis PeakOptimalityPercentDelta { get; set; }
     }
 }
