@@ -1,7 +1,15 @@
-﻿namespace TW.Model
+﻿using System.ComponentModel;
+
+namespace TW.Model
 {
     public class Network
     {
+        public event EventHandler NetworkChanged;
+        protected virtual void OnNetworkChanged(Object sender, CollectionChangeEventArgs e)
+        {
+            NetworkChanged?.Invoke(sender, e);
+        }
+
         Random r = new Random();
         const bool throwOnFailedConnection = false;
 
@@ -122,6 +130,8 @@
                 throw new ArgumentException("Node already exists.");
             }
             Nodes.Add(node);
+            node.ElementChanged += ElementChanged;
+            OnNetworkChanged(this, new CollectionChangeEventArgs(CollectionChangeAction.Add, node));
         }
 
         public (IEnumerable<Link> successfulLinks, IEnumerable<(Link, string)> failedLinks) ConnectElement(string nodeId, IEnumerable<string> inputIds, IEnumerable<string> outputIds)
@@ -174,6 +184,8 @@
 
                 link.MaxCapacity = r.Next(25, 100);
                 link.LossFn = PowerLossF;
+
+                link.ElementChanged += ElementChanged;
 
                 input.Links.Add(link);
                 node.Links.Add(link);
@@ -251,6 +263,11 @@
                 }
             }
             return true;
+        }
+
+        private void ElementChanged(object? sender, PropertyChangedEventArgs e)
+        {
+            OnNetworkChanged(this, new CollectionChangeEventArgs(CollectionChangeAction.Refresh, sender));
         }
     }
 }
