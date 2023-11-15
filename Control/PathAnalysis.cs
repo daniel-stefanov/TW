@@ -2,11 +2,12 @@
 {
     public class PathAnalysis
     {
-        public List<NodeAnalysis> Path { get; set; }
+        public List<ElementAnalysis> Path { get; set; } = new List<ElementAnalysis>();
         public double AverageLoad { get; set; }
-        public NodeAnalysis PeakLoad { get; set; }
+        public ElementAnalysis PeakLoad { get; set; }
         public double AverageLoss { get; set; }
-        public NodeAnalysis PeakLoss { get; set; }
+        public ElementAnalysis PeakLoss { get; set; }
         public double AverageOptimalityDelta { get; set; }
+        public ElementAnalysis PeakOptimalityDelta { get; set; }
     }
 }

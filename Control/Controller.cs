@@ -13,10 +13,11 @@ namespace TW.Control
             List<Node> startNodes = net.Nodes.Where(x => !x.Links.Any(y => y.NodeOut == x)).ToList();
             List<List<NetworkElement>> paths = new List<List<NetworkElement>>();
             int i = 0;
-            while(i<startNodes.Count) {
+            while (i < startNodes.Count)
+            {
                 Node node = startNodes[i];
-                statusHandler?.Invoke(net, new ProgressChangedEventArgs((int)(((double)i/(double)startNodes.Count)*100), $"Gettings paths from {node.Id}"));
-                paths = await GetPaths(paths, new List<NetworkElement> { node }, node);
+                statusHandler?.Invoke(net, new ProgressChangedEventArgs((int)(((double)i / (double)startNodes.Count) * 100), $"Gettings paths from {node.Id}"));
+                paths = await GetPathsInternal(paths, new List<NetworkElement> { node }, node);
                 i++;
             }
 
@@ -24,7 +25,7 @@ namespace TW.Control
             return paths;
         }
 
-        private async static Task<List<List<NetworkElement>>> GetPaths(List<List<NetworkElement>> paths, List<NetworkElement> currentPath, NetworkElement currentElement)
+        private async static Task<List<List<NetworkElement>>> GetPathsInternal(List<List<NetworkElement>> paths, List<NetworkElement> currentPath, NetworkElement currentElement)
         {
             List<List<NetworkElement>> overlappingPaths = paths.Where(x => x.Contains(currentElement)).ToList();
             if (overlappingPaths.Any())
@@ -63,7 +64,7 @@ namespace TW.Control
                     {
                         List<NetworkElement> branch = new List<NetworkElement>(currentPath);
                         branch.Add(child);
-                        paths = await GetPaths(paths, branch, child);
+                        paths = await GetPathsInternal(paths, branch, child);
                     }
                 }
             }
@@ -110,9 +111,58 @@ namespace TW.Control
             return optimalRawDemand;
         }
 
-        public static Report GenerateReport(Network net)
+        public static async Task<Report> GenerateReport(Network net, ProgressChangedEventHandler? statusHandler)
         {
-            throw new NotImplementedException();
+            Report report = new Report();
+            List<List<NetworkElement>> paths = await FindAllPaths(net, statusHandler);
+            int elementCounter = 0;
+            int i = 0;
+            while (i < paths.Count)
+            {
+                List<NetworkElement> path = paths[i];
+                PathAnalysis analyzedPath = new PathAnalysis();
+
+                int q = 0;
+                while (q < path.Count)
+                {
+                    statusHandler?.Invoke(net, new ProgressChangedEventArgs((int)(((double)elementCounter / (double)paths.Sum(x => x.Count)) * 100), $"Analyzing paths..."));
+
+                    NetworkElement element = path[q];
+                    ElementAnalysis analyzedElement = new ElementAnalysis();
+                    analyzedElement.Element = element;
+                    analyzedElement.Load = element.LoadRatio * 100;
+                    analyzedElement.Loss = element.LossFn(element);
+                    analyzedElement.OptimalLoad = (FindOptimalFlow(element, 0.01) / element.MaxCapacity) * 100;
+
+                    analyzedPath.Path.Add(analyzedElement);
+
+                    q++;
+                    elementCounter++;
+                }
+
+                analyzedPath.AverageLoad = analyzedPath.Path.Average(x => x.Load);
+                analyzedPath.PeakLoad = analyzedPath.Path.MaxBy(x => x.Load);
+                analyzedPath.AverageLoss = analyzedPath.Path.Average(x => x.Loss);
+                analyzedPath.PeakLoss = analyzedPath.Path.MaxBy(x => x.Loss);
+                analyzedPath.AverageOptimalityDelta = analyzedPath.Path.Average(x => Math.Abs(x.Load - x.OptimalLoad));
+
+                report.Paths.Add(analyzedPath);
+
+                i++;
+            }
+
+            statusHandler?.Invoke(net, new ProgressChangedEventArgs(100, $"Summarizing..."));
+
+            List<List<NetworkElement>> normalPaths = paths.Where(x => x.First() is Generator && x.Last() is Consumer).ToList();
+            report.SupplyDemandRatio = normalPaths.Sum(x => (x.First() as Generator).Production) / normalPaths.Sum(x => (x.Last() as Consumer).Demand);
+            report.TotalLossess = report.Paths.SelectMany(x => x.Path).DistinctBy(x => x.Element.Id).Sum(x => x.Loss);
+            report.AverageOptimalityDelta = report.Paths.Average(x => x.AverageOptimalityDelta);
+
+            statusHandler?.Invoke(net, new ProgressChangedEventArgs(100, $"Generating recommendations..."));
+
+
+
+            return report;
         }
 
         public static Report CompareReports(Report r1, Report r2)

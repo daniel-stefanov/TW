@@ -24,7 +24,7 @@ namespace TW
 
         private static void Program_ProgressChanged(object? sender, ProgressChangedEventArgs e)
         {
-            Console.WriteLine($"{e.ProgressPercentage.ToString().PadLeft(3)}% : {e.UserState.ToString()}"); 
+            Console.WriteLine($"{e.ProgressPercentage.ToString().PadLeft(3)}% : {e.UserState.ToString()}");
         }
 
         static void InitializeNetwork()
@@ -140,6 +140,11 @@ namespace TW
             {
                 PrintPath(path);
             }
+        }
+
+        static void PrintReport(Report report)
+        {
+
         }
 
         static void PrintPath(List<NetworkElement> path)
