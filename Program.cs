@@ -1,14 +1,18 @@
-﻿using TW.Control;
+﻿using System.ComponentModel;
+using TW.Control;
 using TW.Model;
 
 namespace TW
 {
     internal class Program
     {
+        static event ProgressChangedEventHandler ProgressChanged;
+
         static Network DemoNetwork = new Network();
         static bool exit = false;
         static void Main(string[] args)
         {
+            ProgressChanged += Program_ProgressChanged;
             InitializeNetwork();
             do
             {
@@ -16,6 +20,11 @@ namespace TW
                 ProcessInput();
             }
             while (!exit);
+        }
+
+        private static void Program_ProgressChanged(object? sender, ProgressChangedEventArgs e)
+        {
+            Console.WriteLine($"{e.ProgressPercentage.ToString().PadLeft(3)}% : {e.UserState.ToString()}"); 
         }
 
         static void InitializeNetwork()
@@ -125,9 +134,8 @@ namespace TW
         static void AnalyzeNetwork()
         {
             Console.WriteLine("Analyzing network...");
-            Console.WriteLine("Finding paths...");
+            List<List<NetworkElement>> paths = Controller.FindAllPaths(DemoNetwork, ProgressChanged).Result;
             Console.WriteLine();
-            List<List<NetworkElement>> paths = Controller.FindAllPaths(DemoNetwork);
             foreach (List<NetworkElement> path in paths)
             {
                 PrintPath(path);

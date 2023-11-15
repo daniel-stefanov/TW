@@ -1,22 +1,30 @@
-﻿using System.Text;
+﻿using System.ComponentModel;
+using System.Text;
 using TW.Model;
 
 namespace TW.Control
 {
     public static class Controller
     {
-        public static List<List<NetworkElement>> FindAllPaths(Network net)
+        public async static Task<List<List<NetworkElement>>> FindAllPaths(Network net, ProgressChangedEventHandler? statusHandler)
         {
-            IEnumerable<Node> startNodes = net.Nodes.Where(x => !x.Links.Any(y => y.NodeOut == x));
+            statusHandler?.Invoke(net, new ProgressChangedEventArgs(0, "Finding root nodes..."));
+
+            List<Node> startNodes = net.Nodes.Where(x => !x.Links.Any(y => y.NodeOut == x)).ToList();
             List<List<NetworkElement>> paths = new List<List<NetworkElement>>();
-            foreach (Node node in startNodes)
-            {
-                paths = GetPaths(paths, new List<NetworkElement> { node }, node);
+            int i = 0;
+            while(i<startNodes.Count) {
+                Node node = startNodes[i];
+                statusHandler?.Invoke(net, new ProgressChangedEventArgs((int)(((double)i/(double)startNodes.Count)*100), $"Gettings paths from {node.Id}"));
+                paths = await GetPaths(paths, new List<NetworkElement> { node }, node);
+                i++;
             }
+
+            statusHandler?.Invoke(net, new ProgressChangedEventArgs(100, $"Done. {paths.Count} unique paths found."));
             return paths;
         }
 
-        private static List<List<NetworkElement>> GetPaths(List<List<NetworkElement>> paths, List<NetworkElement> currentPath, NetworkElement currentElement)
+        private async static Task<List<List<NetworkElement>>> GetPaths(List<List<NetworkElement>> paths, List<NetworkElement> currentPath, NetworkElement currentElement)
         {
             List<List<NetworkElement>> overlappingPaths = paths.Where(x => x.Contains(currentElement)).ToList();
             if (overlappingPaths.Any())
@@ -55,7 +63,7 @@ namespace TW.Control
                     {
                         List<NetworkElement> branch = new List<NetworkElement>(currentPath);
                         branch.Add(child);
-                        paths = GetPaths(paths, branch, child);
+                        paths = await GetPaths(paths, branch, child);
                     }
                 }
             }
