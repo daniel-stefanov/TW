@@ -19,7 +19,7 @@ namespace TW.Model
         {
             double ratio = Math.Pow(element.LoadRatio, 2);
             double fixedLoss = element.MaxCapacity / 100;
-            double variableLoss = (element.MaxCapacity / 10) * ratio;
+            double variableLoss = (element.MaxCapacity / 50) * ratio;
             return fixedLoss + variableLoss;
         }
 
